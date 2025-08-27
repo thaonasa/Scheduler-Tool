@@ -1,0 +1,41 @@
+{
+  "sessions": [
+    {
+      "id": "2025-W35",
+      "week_start": "2025-08-25",
+      "week_end": "2025-08-30",
+      "events": [
+        {
+          "id": "969ff50d-f4fb-406b-9f5e-8c5fbd49a72b",
+          "date": "2025-08-29",
+          "session_buoi": "SÁNG",
+          "start_time": "11:00",
+          "end_time": "12:00",
+          "title": "Họp giao ban ",
+          "category": "Định kỳ ",
+          "chair": "TGĐ",
+          "attendees": "toàn bộ thành viên ",
+          "location": "Phòng họp 1"
+        },
+        {
+          "id": "dbf3d300-fd0e-484f-b99f-d3da5ab82c76",
+          "date": "2025-08-25",
+          "session_buoi": "CHIỀU",
+          "start_time": "14:30",
+          "end_time": "16:30",
+          "title": "Họp giao ban ",
+          "category": "Định kỳ ",
+          "chair": "COO",
+          "attendees": "toàn bộ thành viên ",
+          "location": "Phòng họp 2"
+        }
+      ]
+    },
+    {
+      "id": "2025-W32",
+      "week_start": "2025-08-04",
+      "week_end": "2025-08-09",
+      "events": []
+    }
+  ]
+}
