@@ -8,6 +8,11 @@ from flask import Flask, request, render_template_string, send_file, redirect, u
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
 from openpyxl.utils import get_column_letter
+from openpyxl.cell.rich_text import CellRichText, Text
+from openpyxl.cell.rich_text import CellRichText, TextBlock
+from openpyxl.styles import Font
+
+
 
 app = Flask(__name__)
 
@@ -152,81 +157,183 @@ def upsert_event(session, payload):
 def delete_event(session, event_id: str):
     session["events"] = [e for e in session["events"] if e["id"] != event_id]
 
-# ========== XUẤT EXCEL DẠNG DANH SÁCH (có cột "Buổi") ==========
+# ======= DỮ LIỆU GỘP THEO NGÀY/BUỔI (dùng cho Export & Preview) =======
+def build_schedule(session):
+    """Trả về:
+    - dates: list[date]
+    - schedule: { 'dd/mm/YYYY': { 'SÁNG': [ev...], 'CHIỀU':[ev...] } }
+    """
+    week_start = dt.date.fromisoformat(session["week_start"])
+    dates = [week_start + dt.timedelta(days=i) for i in range(WEEK_DAYS)]
+    events = sorted(session["events"], key=lambda e: (e["date"], hhmm_to_minutes(e["start_time"])))
+    compute_conflicts(events)
+    schedule = {}
+    for ev in events:
+        key = dt.date.fromisoformat(ev["date"]).strftime('%d/%m/%Y')
+        schedule.setdefault(key, {'SÁNG': [], 'CHIỀU': []})
+        schedule[key][ev["session_buoi"]].append(ev)
+    return dates, schedule
+
+# ========== XUẤT EXCEL DẠNG BẢNG LỊCH HỌP ==========
 def export_session_to_excel(session):
+    """
+    Xuất Excel: bố cục giống preview
+    - Mỗi sự kiện chiếm 2 hàng (header + details)
+    - Header bôi đậm & căn giữa (highlight điểm chính)
+    - Details căn trái
+    - Tô màu theo Chủ trì cho cả 2 hàng của sự kiện
+    """
     wb = Workbook()
     ws = wb.active
 
     week_start = dt.date.fromisoformat(session["week_start"])
-    week_end = dt.date.fromisoformat(session["week_end"])
+    week_end   = dt.date.fromisoformat(session["week_end"])
 
-    # Title & tuần
-    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=9)
-    ws["A1"] = f"LỊCH HỌP TUẦN {COMPANY_NAME}"
-    ws["A1"].font = Font(size=14, bold=True)
-    ws["A1"].alignment = Alignment(horizontal="center")
+    # build_schedule(session) phải trả về:
+    #   dates: [date, ...] của Thứ 2 -> Thứ 7 (datetime.date)
+    #   schedule: { 'dd/mm/YYYY': { 'SÁNG': [event...], 'CHIỀU': [event...] } }
+    dates, schedule = build_schedule(session)
 
-    ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=9)
-    ws["A2"] = f"Tuần: {week_start.strftime('%d/%m/%Y')} -> {week_end.strftime('%d/%m/%Y')}"
-    ws["A2"].font = Font(bold=True)
-    ws["A2"].alignment = Alignment(horizontal="center")
+    weekdays = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
 
-    # Header
-    headers = ["Ngày", "Buổi", "Giờ bắt đầu", "Giờ kết thúc", "Tiêu đề", "Loại", "Chủ trì", "Tham dự", "Địa điểm"]
-    ws.append(headers)
-    for col in range(1, len(headers)+1):
-        c = ws.cell(row=3, column=col)
+    # ----- Tiêu đề -----
+    ws.merge_cells('A1:G1')
+    ws['A1'] = f"LỊCH HỌP TUẦN {COMPANY_NAME.upper()}"
+    ws['A1'].font = Font(bold=True, size=14)
+    ws['A1'].alignment = Alignment(horizontal='center')
+
+    ws.merge_cells('A2:G2')
+    ws['A2'] = f"Tuần:  {week_start.strftime('%d/%m/%Y')} -> {week_end.strftime('%d/%m/%Y')}"
+    ws['A2'].font = Font(bold=True)
+    ws['A2'].alignment = Alignment(horizontal='center')
+
+    # ----- Header -----
+    ws['A3'] = "Buổi"
+    ws['A3'].font = Font(bold=True)
+    for i, d in enumerate(dates, start=2):
+        c = ws.cell(row=3, column=i, value=f"{weekdays[i-2]}\n({d.strftime('%d.%m.%Y')})")
+        c.alignment = Alignment(horizontal="center", wrap_text=True)
         c.font = Font(bold=True)
-        c.alignment = Alignment(horizontal="center", vertical="center")
 
-    # Dữ liệu
-    events = sorted(session["events"], key=lambda e: (e["date"], e["session_buoi"], e["start_time"]))
-    compute_conflicts(events)
-
-    thin = Side(style="thin", color="000000")
+    thin   = Side(style="thin", color="000000")
     border = Border(left=thin, right=thin, top=thin, bottom=thin)
 
-    for ev in events:
-        row = [
-            ev["date"],
-            ev["session_buoi"],
-            ev["start_time"],
-            ev["end_time"],
-            ev["title"] + (" ⚠️ TRÙNG GIỜ" if ev.get("conflict") else ""),
-            ev.get("category", ""),
-            ev["chair"],
-            ev.get("attendees", ""),
-            ev.get("location", "")
-        ]
-        ws.append(row)
-        last_row = ws.max_row
+    # ----- Dữ liệu -----
+    start_row = 4
+    date_keys = [d.strftime('%d/%m/%Y') for d in dates]
 
-        # Viền + căn dòng
-        for col in range(1, len(headers)+1):
-            cell = ws.cell(row=last_row, column=col)
-            cell.border = border
-            if col in (1, 2, 3, 4):
-                cell.alignment = Alignment(horizontal="center", vertical="top", wrap_text=True)
-            else:
-                cell.alignment = Alignment(vertical="top", wrap_text=True)
+    for buoi in ["SÁNG", "CHIỀU"]:
+        # số sự kiện tối đa trong buổi này (trên các ngày)
+        max_events = max([len(schedule.get(k, {}).get(buoi, [])) for k in date_keys] + [0])
+        if max_events < 1:
+            max_events = 1  # vẫn chừa block để hiện "—"
 
-        # Tô màu theo chủ trì
-        if ev["chair"] in CHAIR_COLORS:
-            fill = PatternFill(start_color=excel_color(CHAIR_COLORS[ev["chair"]]),
-                               end_color=excel_color(CHAIR_COLORS[ev["chair"]]),
-                               fill_type="solid")
-            for col in range(1, len(headers)+1):
-                ws.cell(row=last_row, column=col).fill = fill
+        # mỗi sự kiện 2 hàng
+        block_height = max_events * 2
+        end_row = start_row + block_height - 1
 
-    # Auto width
-    widths = [14, 10, 12, 12, 36, 16, 14, 26, 22]
-    for i, w in enumerate(widths, start=1):
-        ws.column_dimensions[get_column_letter(i)].width = w
+        # Cột A: gộp ô "Buổi"
+        ws.merge_cells(start_row=start_row, start_column=1, end_row=end_row, end_column=1)
+        a = ws.cell(row=start_row, column=1, value=buoi)
+        a.font = Font(bold=True)
+        a.alignment = Alignment(horizontal="center", vertical="center")
+        a.border = border
+
+        # Điền dữ liệu theo từng ngày
+        for col_idx, k in enumerate(date_keys, start=2):
+            evs = list(schedule.get(k, {}).get(buoi, []))
+            evs.sort(key=lambda e: hhmm_to_minutes(e["start_time"]))
+
+            for r_off in range(max_events):
+                # Hàng header & details cho sự kiện thứ r_off
+                header_row  = start_row + r_off * 2
+                detail_row  = header_row + 1
+
+                # Bắt buộc set viền + alignment mặc định
+                for rr in (header_row, detail_row):
+                    cc = ws.cell(row=rr, column=col_idx)
+                    cc.border = border
+
+                if r_off < len(evs):
+                    ev = evs[r_off]
+
+                    # ----- HEADER (in đậm & căn giữa) -----
+                    header_text = f"• {ev['start_time']}–{ev['end_time']}: {ev['title']}\nChủ trì: {ev['chair']}"
+                    hcell = ws.cell(row=header_row, column=col_idx, value=header_text)
+                    hcell.font = Font(bold=True)
+                    hcell.alignment = Alignment(wrap_text=True, vertical='center', horizontal='center')
+
+                    # ----- DETAILS (căn trái) -----
+                    details = []
+                    if ev.get("attendees"):
+                        details.append(f"- Tham dự: {ev['attendees']}")
+                    if ev.get("location"):
+                        details.append(f"- Địa điểm: {ev['location']}")
+                    if ev.get("category"):
+                        details.append(f"- Loại: {ev['category']}")
+                    if ev.get("conflict"):
+                        details.append("⚠ Trùng giờ")
+
+                    dcell = ws.cell(row=detail_row, column=col_idx, value="\n".join(details))
+                    dcell.alignment = Alignment(wrap_text=True, vertical='top', horizontal='left')
+
+                    # ----- NỀN THEO CHỦ TRÌ -----
+                    hexcol = CHAIR_COLORS.get(ev["chair"])
+                    if hexcol:
+                        fill = PatternFill(start_color=excel_color(hexcol),
+                                           end_color=excel_color(hexcol),
+                                           fill_type="solid")
+                        hcell.fill = fill
+                        dcell.fill = fill
+                else:
+                    # Không có sự kiện -> hàng đầu hiển thị "—"
+                    hcell = ws.cell(row=header_row, column=col_idx, value="—")
+                    hcell.alignment = Alignment(horizontal='center', vertical='center')
+                    ws.cell(row=detail_row, column=col_idx, value="")
+
+        # Chiều cao hàng (header thấp hơn details)
+        for r in range(start_row, end_row + 1, 2):
+            ws.row_dimensions[r].height     = 34   # header
+            ws.row_dimensions[r + 1].height = 88   # details
+
+        start_row = end_row + 1  # sang buổi tiếp theo
+
+    # Viền hàng header
+    for c in range(1, 8):
+        ws.cell(row=3, column=c).border = border
+
+    # Độ rộng cột
+    ws.column_dimensions['A'].width = 12
+    for c in range(2, 8):
+        ws.column_dimensions[get_column_letter(c)].width = 36
+
+    # ----- Khu ghi chú -----
+    notes_row = start_row + 1
+    ws.merge_cells(start_row=notes_row, start_column=1, end_row=notes_row, end_column=6)
+    ws.cell(
+        row=notes_row, column=1,
+        value="Ghi chú: Các cuộc họp phát sinh TL.BGĐ xin ý kiến BGĐ thống nhất -> HV cập nhật lên phần mềm"
+    )
+    ws.cell(
+        row=notes_row, column=7,
+        value=f"Đà Nẵng, Ngày {week_end.strftime('%d')} tháng {week_end.strftime('%m')} năm {week_end.strftime('%Y')}"
+    ).alignment = Alignment(horizontal='center')
+
+    ws.cell(row=notes_row+1, column=2, value="BGĐ KIỂM TRA")
+    ws.cell(row=notes_row+1, column=4, value="TP.NS&ĐT Kiểm tra")
+    ws.cell(row=notes_row+1, column=6, value="Người lập biểu")
+
+    ws.cell(row=notes_row+4, column=2, value="Phan Thị Yến Tuyết")
+    ws.cell(row=notes_row+4, column=4, value="Trần Thị Kim Oanh")
+    ws.cell(row=notes_row+4, column=6, value="Trần Thị Mỹ Tân")
 
     output = BytesIO()
     wb.save(output)
     output.seek(0)
     return output, f"lich_hop_tuan_{session['id']}.xlsx"
+
+
+
 
 # ========== XUẤT ICS ==========
 def export_session_to_ics(session):
@@ -292,6 +399,24 @@ def home():
         week_end=dt.date.fromisoformat(sess["week_end"]),
         today=today,
         q=q
+    )
+
+@app.route("/preview/<session_id>")
+def preview(session_id):
+    data = load_data()
+    sess = find_session_by_id(data, session_id)
+    if not sess:
+        return "Không tìm thấy session", 404
+    dates, schedule = build_schedule(sess)
+    weekdays = ['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7']
+    return render_template_string(
+        TEMPLATE_PREVIEW,
+        company=COMPANY_NAME,
+        chair_colors=CHAIR_COLORS,
+        session=sess,
+        dates=dates,
+        schedule=schedule,
+        weekdays=weekdays
     )
 
 @app.route("/sessions")
@@ -382,7 +507,7 @@ def backup_json():
     ensure_data_file()
     return send_file(DATA_PATH, as_attachment=True, download_name="meeting_schedule_backup.json")
 
-# ========== TEMPLATE ==========
+# ========== TEMPLATES ==========
 TEMPLATE_INDEX = """
 <!doctype html>
 <html lang="vi">
@@ -423,7 +548,7 @@ TEMPLATE_INDEX = """
   </header>
 
   <div class="layout">
-    <!-- Sidebar: Sessions & Legend -->
+    <!-- Sidebar -->
     <aside class="card">
       <h2>Tuần &amp; Tính năng</h2>
       <div class="content">
@@ -460,6 +585,7 @@ TEMPLATE_INDEX = """
         <hr style="margin:14px 0">
 
         <div class="toolbar">
+          <a href="/preview/{{ session.id }}" target="_blank"><button type="button">Xem trước (mẫu Excel)</button></a>
           <form method="post" action="/export/{{ session.id }}/excel">
             <button class="primary" type="submit">Export Excel</button>
           </form>
@@ -517,7 +643,6 @@ TEMPLATE_INDEX = """
             </div>
             <div>
               <label>Loại</label>
-              <!-- hidden để post đúng tên field -->
               <input type="hidden" name="category" id="fld-category">
               <select id="fld-category-select">
                 {% for c in categories %}
@@ -555,7 +680,6 @@ TEMPLATE_INDEX = """
             </div>
             <div>
               <label>Địa điểm</label>
-              <!-- hidden để post đúng tên field -->
               <input type="hidden" name="location" id="fld-location">
               <select id="fld-location-select">
                 {% for r in rooms %}
@@ -692,7 +816,6 @@ TEMPLATE_INDEX = """
       document.getElementById('fld-chair').value = g('chair');
       document.getElementById('fld-attendees').value = g('attendees');
 
-      // Set select/other cho category & location
       setSelectOrOther('fld-category-select', 'fld-category-other', 'fld-category', g('category'));
       setSelectOrOther('fld-location-select', 'fld-location-other', 'fld-location', g('location'));
 
@@ -703,7 +826,83 @@ TEMPLATE_INDEX = """
 </html>
 """
 
+# —— PREVIEW TEMPLATE: mỗi sự kiện là 1 khối màu theo Chủ trì ——
+TEMPLATE_PREVIEW = """
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Preview lịch tuần – {{ company }}</title>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#f6f7fb; margin:0; padding:24px; color:#111827; }
+    h1 { margin:0 0 16px 0; font-size:20px; }
+    .table { border:1px solid #e5e7eb; background:#fff; border-radius:10px; overflow:hidden }
+    .head { display:grid; grid-template-columns: 120px repeat(6, 1fr); background:#f9fafb; border-bottom:1px solid #e5e7eb; }
+    .head div { padding:10px 12px; font-weight:600; text-align:center; }
+    .row { display:grid; grid-template-columns: 120px repeat(6, 1fr); border-bottom:1px solid #f3f4f6; }
+    .buoi { background:#f9fafb; padding:10px 12px; font-weight:700; text-align:center; border-right:1px solid #e5e7eb }
+    .cell { padding:8px; min-height:180px; border-right:1px solid #f3f4f6; }
+    .ev { padding:8px; margin-bottom:8px; border-radius:8px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); background:#f3f4f6 }
+    .ev .tt { font-weight:700 }
+    .muted { color:#6b7280; }
+    .warn { color:#b45309; font-weight:700 }
+    .legend { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap }
+    .tag { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid #e5e7eb; border-radius:999px; background:#fff; }
+    .dot { width:12px; height:12px; border-radius:999px; border:1px solid #e5e7eb; display:inline-block }
+    @media print {
+      body { padding:0; }
+      .legend { display:none }
+    }
+  </style>
+</head>
+<body>
+  <h1>Preview lịch tuần – {{ company }} ({{ session.week_start }} → {{ session.week_end }})</h1>
+
+  <div class="table">
+    <div class="head">
+      <div>Buổi</div>
+      {% for d in dates %}
+        <div>{{ weekdays[loop.index0] }}<br><span class="muted">({{ d.strftime('%d.%m.%Y') }})</span></div>
+      {% endfor %}
+    </div>
+
+
+    {% for buoi in ['SÁNG','CHIỀU'] %}
+      <div class="row">
+        <div class="buoi">{{ buoi }}</div>
+        {% for d in dates %}
+          {% set key = d.strftime('%d/%m/%Y') %}
+          <div class="cell">
+            {% for ev in schedule.get(key, {}).get(buoi, []) %}
+              {% set bg = chair_colors.get(ev.chair, '#f3f4f6') %}
+              <div class="ev" style="background: {{ bg }}">
+                <div class="tt">• {{ ev.start_time }}–{{ ev.end_time }}: {{ ev.title }}</div>
+                <div>Chủ trì: <b>{{ ev.chair }}</b></div>
+                {% if ev.attendees %}<div>- Tham dự: {{ ev.attendees }}</div>{% endif %}
+                {% if ev.location %}<div>- Địa điểm: {{ ev.location }}</div>{% endif %}
+                {% if ev.category %}<div>- Loại: {{ ev.category }}</div>{% endif %}
+                {% if ev.conflict %}<div class="warn">⚠ Trùng giờ</div>{% endif %}
+              </div>
+            {% else %}
+              <div class="muted" style="font-style:italic">—</div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="legend">
+    {% for chair, color in chair_colors.items() %}
+      <span class="tag"><span class="dot" style="background: {{ color }}"></span>{{ chair }}</span>
+    {% endfor %}
+  </div>
+</body>
+</html>
+"""
+
 # ========== MAIN ==========
 if __name__ == "__main__":
     ensure_data_file()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)

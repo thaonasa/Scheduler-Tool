@@ -6,28 +6,64 @@
       "week_end": "2025-08-30",
       "events": [
         {
-          "id": "969ff50d-f4fb-406b-9f5e-8c5fbd49a72b",
-          "date": "2025-08-29",
+          "id": "eb5d99a6-2124-4163-8e2c-dc06f3dec615",
+          "date": "2025-08-28",
           "session_buoi": "SÁNG",
-          "start_time": "11:00",
-          "end_time": "12:00",
-          "title": "Họp giao ban ",
-          "category": "Định kỳ ",
+          "start_time": "09:30",
+          "end_time": "10:30",
+          "title": "Họp giao ban",
+          "category": "Họp nội bộ",
           "chair": "TGĐ",
           "attendees": "toàn bộ thành viên ",
+          "location": "Phòng Tổng Giám Đốc"
+        },
+        {
+          "id": "cef38493-4478-47d4-85b9-347ad3a934c6",
+          "date": "2025-08-28",
+          "session_buoi": "SÁNG",
+          "start_time": "09:30",
+          "end_time": "10:30",
+          "title": "Họp AI",
+          "category": "Họp định kỳ",
+          "chair": "CEO",
+          "attendees": "CEO, TB.AI, TB.IT",
           "location": "Phòng họp 1"
         },
         {
-          "id": "dbf3d300-fd0e-484f-b99f-d3da5ab82c76",
-          "date": "2025-08-25",
+          "id": "9902dc96-c33e-47a9-bc5b-890329617e33",
+          "date": "2025-08-28",
           "session_buoi": "CHIỀU",
-          "start_time": "14:30",
-          "end_time": "16:30",
-          "title": "Họp giao ban ",
-          "category": "Định kỳ ",
+          "start_time": "15:30",
+          "end_time": "16:05",
+          "title": "Giao ban",
+          "category": "Họp định kỳ",
+          "chair": "GS.XD",
+          "attendees": "CEO, TB.AI, TB.IT",
+          "location": "Phòng họp 2"
+        },
+        {
+          "id": "468f69f2-d6b4-4bf7-ae72-065e4c3f0b1e",
+          "date": "2025-08-28",
+          "session_buoi": "SÁNG",
+          "start_time": "08:30",
+          "end_time": "09:30",
+          "title": "Giao ban",
+          "category": "Họp định kỳ",
+          "chair": "PP.KTTC",
+          "attendees": "CEO, TB.AI, TB.IT",
+          "location": "Phòng họp 3"
+        },
+        {
+          "id": "3e90e9a7-26c0-4452-8377-777a1bd2946e",
+          "date": "2025-08-28",
+          "session_buoi": "SÁNG",
+          "start_time": "08:30",
+          "end_time": "09:30",
+          "title": "Phỏng vấn",
+          "category": "Họp định kỳ",
           "chair": "COO",
           "attendees": "toàn bộ thành viên ",
-          "location": "Phòng họp 2"
+          "location": "Phòng họp 3"
         }
       ]
     },
