@@ -6,8 +6,339 @@
       "week_end": "2025-08-30",
       "events": [
         {
-          "id": "eb5d99a6-2124-4163-8e2c-dc06f3dec615",
+          "id": "a52ef3b6-fcdf-47c6-8f67-37f477f99358",
+          "date": "2025-08-25",
+          "session_buoi": "SÁNG",
+          "start_time": "08:30",
+          "end_time": "09:15",
+          "title": "CEO trao đổi chủ trương của BLĐ về việc thưởng hiệu quả Kinh doanh",
+          "category": "",
+          "chair": "CEO",
+          "attendees": "CEO, COO, TL.YP, YT_TT, P/B/BP",
+          "location": "phòng họp 1"
+        },
+        {
+          "id": "4f861874-db47-4ffb-90da-8ed0e5dde96c",
+          "date": "2025-08-25",
+          "session_buoi": "SÁNG",
+          "start_time": "08:30",
+          "end_time": "10:00",
+          "title": "PNSĐT hướng dẫn hội nhập cho Trưởng BP.AI",
+          "category": "",
+          "chair": "",
+          "attendees": "PPNSĐT, Trưởng BP.AI",
+          "location": "Phòng họp 2"
+        },
+        {
+          "id": "4128b026-60f2-4b2c-8530-2ca88ab2f800",
+          "date": "2025-08-25",
+          "session_buoi": "SÁNG",
+          "start_time": "09:15",
+          "end_time": "12:00",
+          "title": "Họp giao ban BGĐ & P.B",
+          "category": "",
+          "chair": "COO",
+          "attendees": "COO, TL.YP_TT, P/B/BP",
+          "location": "phòng họp 1"
+        },
+        {
+          "id": "17ab6178-7b80-40e0-bdb6-34d47db7eb5e",
+          "date": "2025-08-25",
+          "session_buoi": "SÁNG",
+          "start_time": "09:15",
+          "end_time": "12:00",
+          "title": "Họp cải tiến xây dựng-BonPas Lê Thanh Nghị",
+          "category": "",
+          "chair": "CV.BGĐ",
+          "attendees": "CV.BGĐ, CEO, QLĐHBK, TL.YT, GS.XD",
+          "location": "phòng BGĐ"
+        },
+        {
+          "id": "6b5616ff-5c3e-4614-937a-d3bc2a8b7f79",
+          "date": "2025-08-25",
+          "session_buoi": "CHIỀU",
+          "start_time": "14:00",
+          "end_time": "14:45",
+          "title": "Phỏng vấn NV kế toán kho NVL",
+          "category": "",
+          "chair": "CEO",
+          "attendees": "CEO, TL.TT, TP.NSĐT, TPKTTC",
+          "location": "phòng họp 3"
+        },
+        {
+          "id": "da412e44-6bdf-48f3-889c-1f9dc0cac5b3",
+          "date": "2025-08-25",
+          "session_buoi": "CHIỀU",
+          "start_time": "14:00",
+          "end_time": "15:30",
+          "title": "Họp phòng KD",
+          "category": "",
+          "chair": "COO",
+          "attendees": "COO,  PP.KD, CV.KD_ MĐ, MS, TN, NV.KD_Hương",
+          "location": "phòng họp 1"
+        },
+        {
+          "id": "18666f0c-3284-4a83-9746-c2d2688d48b1",
+          "date": "2025-08-25",
+          "session_buoi": "CHIỀU",
+          "start_time": "14:45",
+          "end_time": "15:30",
+          "title": "Phỏng vấn Chuyên viên 5S",
+          "category": "",
+          "chair": "CEO",
+          "attendees": "CEO, TBHSE và TP.NSĐT",
+          "location": "phòng họp 3"
+        },
+        {
+          "id": "89e94f55-2093-4767-9407-8506f0417064",
+          "date": "2025-08-25",
+          "session_buoi": "CHIỀU",
+          "start_time": "15:30",
+          "end_time": "17:00",
+          "title": "NVISO hướng dẫn hội nhập cho Trưởng BP.AI",
+          "category": "",
+          "chair": "NVISO",
+          "attendees": "NVISO, Trưởng BP.AI",
+          "location": "Phòng họp 2"
+        },
+        {
+          "id": "d0e5ddf8-f393-4be9-9558-91073554f35b",
+          "date": "2025-08-25",
+          "session_buoi": "CHIỀU",
+          "start_time": "15:30",
+          "end_time": "17:00",
+          "title": "Họp AI & PM",
+          "category": "",
+          "chair": "TBHSE",
+          "attendees": "CEO, COO, TL.YT, PT.IT PM_NC",
+          "location": "phòng họp 3"
+        },
+        {
+          "id": "c5044515-30b7-498b-a66c-01859e75496e",
+          "date": "2025-08-26",
+          "session_buoi": "SÁNG",
+          "start_time": "08:30",
+          "end_time": "10:00",
+          "title": "Phỏng vấn CVĐT (2UV)",
+          "category": "",
+          "chair": "CEO",
+          "attendees": "CEO, COO, TP.NS&ĐT",
+          "location": "phòng họp 3"
+        },
+        {
+          "id": "1dc18deb-4a93-4194-8fde-dc6beccae91b",
+          "date": "2025-08-26",
+          "session_buoi": "SÁNG",
+          "start_time": "09:00",
+          "end_time": "12:00",
+          "title": "HỌP ĐỊNH KỲ TUẦN QLBKR ĐT.ĐN & ĐT.SG (online)",
+          "category": "",
+          "chair": "COO",
+          "attendees": "COO, T.BKS,  PP.KD, CV.KD_MĐ, TN, MS, BKS_Hạnh_Anh Thư_P.Thảo, KTBM_Kiệt,  QAHT, TBHSE, PPNSĐT, NV.ĐT_Duyên, Lời, TP.QC, NS.CN và  QL BKR ĐN và SG (chia làm 2 đợt), HV",
+          "location": "Phòng họp 1, 2"
+        },
+        {
+          "id": "e6b71dd2-d028-4af1-894d-fa30fcef3fe2",
+          "date": "2025-08-26",
+          "session_buoi": "SÁNG",
+          "start_time": "10:00",
+          "end_time": "12:00",
+          "title": "Phỏng vấn PP. Kế Toán (3UV)",
+          "category": "",
+          "chair": "CEO",
+          "attendees": "CEO, TL.TT, TP.NSĐT, TPKT_VK",
+          "location": "phòng họp 3"
+        },
+        {
+          "id": "da293871-111a-4b99-8fd5-d15f52d0dc10",
+          "date": "2025-08-27",
+          "session_buoi": "SÁNG",
+          "start_time": "08:30",
+          "end_time": "09:15",
+          "title": "Phỏng vấn Nhân viên BTSC",
+          "category": "",
+          "chair": "CEO",
+          "attendees": "CEO, TBHSE, TP.NS&ĐT",
+          "location": "phòng họp 3"
+        },
+        {
+          "id": "5b872c0d-4577-4c50-8e75-ab7d6d696b8b",
+          "date": "2025-08-27",
+          "session_buoi": "SÁNG",
+          "start_time": "09:00",
+          "end_time": "12:00",
+          "title": "HỌP ĐỊNH KỲ TUẦN QLBKR ĐT.ĐN & ĐT.SG (online)",
+          "category": "",
+          "chair": "COO",
+          "attendees": "COO, TL_YP, PP.KD, CV.KD_MĐ, TN, MS, BKS_Hạnh_Anh Thư_P.Thảo, KTBM_Kiệt,  QAHT, TBHSE, PPNSĐT, NV.ĐT_Duyên, Lời, TP.QC, NS.CN và  QL BKR ĐN và SG (chia làm 2 đợt), HV",
+          "location": "Phòng họp 1, 2"
+        },
+        {
+          "id": "d43cc32c-3853-413e-8b26-3a2a787977ba",
+          "date": "2025-08-27",
+          "session_buoi": "SÁNG",
+          "start_time": "09:15",
+          "end_time": "10:15",
+          "title": "Báo cáo KTTV NV ĐP và thế phiên VC",
+          "category": "",
+          "chair": "COO",
+          "attendees": "CEO, COO, TPNSĐT, QAHT, NV ĐP và thế phiên VC",
+          "location": "phòng họp 3"
+        },
+        {
+          "id": "44e29993-d031-438a-8add-e1dba8203ee5",
+          "date": "2025-08-27",
+          "session_buoi": "SÁNG",
+          "start_time": "10:15",
+          "end_time": "12:00",
+          "title": "Họp marketing",
+          "category": "",
+          "chair": "CEO",
+          "attendees": "CEO, QLĐHBK, PKD_H.Kim, TP.MKT, QL.CMK",
+          "location": "phòng họp 3"
+        },
+        {
+          "id": "f7c37c25-d2d3-4f7b-8bde-ea28bc59d63d",
+          "date": "2025-08-27",
+          "session_buoi": "CHIỀU",
+          "start_time": "15:00",
+          "end_time": "16:30",
+          "title": "Họp Tiền lương bánh lạnh",
+          "category": "",
+          "chair": "CV.BGĐ",
+          "attendees": "",
+          "location": ""
+        },
+        {
+          "id": "757d8e80-fd3e-425a-aa70-dd2f55708b90",
+          "date": "2025-08-27",
+          "session_buoi": "CHIỀU",
+          "start_time": "15:00",
+          "end_time": "17:00",
+          "title": "HỌP PM TRUNG THU",
+          "category": "",
+          "chair": "COO",
+          "attendees": "COO, TL_YT, IT.PM_N.Cang_N.Nguyên_Q.Hòa_Tuấn Anh, PPKD, CVKD_M.Đức, PQĐ_Q.Như, TPQC, TPKTTC, NVKT_H.Vân, QĐXSX, NVISO, QAHT",
+          "location": "phòng họp 1"
+        },
+        {
+          "id": "284fb360-12ae-47e8-8f78-59c536f43ea1",
           "date": "2025-08-28",
+          "session_buoi": "SÁNG",
+          "start_time": "09:00",
+          "end_time": "12:00",
+          "title": "ÁP DỤNG AI_CHAT GPT VÀO CÔNG VIỆC",
+          "category": "",
+          "chair": "COO",
+          "attendees": "COO, PGĐ.PC, TL_YP_YT_TT,  TCN, BQĐ_H.Dương, Q.Như, TB.HSE, GSXD, PPKV, TP/PP KTTC, TP/PP NSĐT, PPKD, TPMKT, QL.CM, TPKT, GSIT, ITPM_NC_NN, Team AI_Văn An, TPQC, GS.XSXBM, QAHT, CV/NV ISO, TP R&D, PKD_H.Kim, NVĐT_V.Lời_T.Duyên, TBAN, NVPC_H.Sơn, CNHCM_Kim Hồng, Huy Giáp, PTKD_CN",
+          "location": "phòng họp 1&2"
+        },
+        {
+          "id": "cbddfbbb-b335-4ea8-8417-10a65844a29d",
+          "date": "2025-08-28",
+          "session_buoi": "CHIỀU",
+          "start_time": "13:30",
+          "end_time": "17:00",
+          "title": "BGĐ đi công tác",
+          "category": "",
+          "chair": "COO",
+          "attendees": "CEO, QLĐHBK",
+          "location": "HCM"
+        },
+        {
+          "id": "478e4964-81c3-4ab7-920c-b318ff3f098f",
+          "date": "2025-08-28",
+          "session_buoi": "CHIỀU",
+          "start_time": "14:30",
+          "end_time": "16:00",
+          "title": "Giải pháp ổn định thu nhập Ql BKR  và ổn định nhân sự\"",
+          "category": "",
+          "chair": "CV.BGĐ",
+          "attendees": "",
+          "location": ""
+        },
+        {
+          "id": "ed2e0133-9331-4988-aa50-68439058f9a4",
+          "date": "2025-08-28",
+          "session_buoi": "CHIỀU",
+          "start_time": "16:00",
+          "end_time": "17:00",
+          "title": "Tiến độ PM Doticom",
+          "category": "",
+          "chair": "COO",
+          "attendees": "COO, TL.YT, IT.PM_NC, NN",
+          "location": "phòng họp 1"
+        },
+        {
+          "id": "a61b0a34-c24b-4966-a6b0-aae1a37c8d66",
+          "date": "2025-08-29",
+          "session_buoi": "SÁNG",
+          "start_time": "10:00",
+          "end_time": "11:00",
+          "title": "Họp định kỳ PKT",
+          "category": "",
+          "chair": "TPKT",
+          "attendees": "",
+          "location": ""
+        },
+        {
+          "id": "376de0c7-8b9b-479e-ae6b-57ac1a2a6fb5",
+          "date": "2025-08-29",
+          "session_buoi": "CHIỀU",
+          "start_time": "13:30",
+          "end_time": "17:00",
+          "title": "BGĐ, P/B đi công tác",
+          "category": "",
+          "chair": "CEO",
+          "attendees": "CEO, COO, QLĐHBK, TL.YP, TL.YT, NV.QA",
+          "location": "HCM"
+        },
+        {
+          "id": "2765e377-8ead-4c18-b9f5-39ff38c2e6c5",
+          "date": "2025-08-30",
+          "session_buoi": "SÁNG",
+          "start_time": "08:00",
+          "end_time": "09:00",
+          "title": "Họp định kỳ PNSĐT",
+          "category": "",
+          "chair": "TPNSĐT",
+          "attendees": "",
+          "location": ""
+        },
+        {
+          "id": "9f2939fb-93e7-494f-99c4-dbcad48e7633",
+          "date": "2025-08-30",
+          "session_buoi": "CHIỀU",
+          "start_time": "15:45",
+          "end_time": "17:00",
+          "title": "Họp định kỳ PKTTC",
+          "category": "",
+          "chair": "PP.KTTC",
+          "attendees": "",
+          "location": ""
+        },
+        {
+          "id": "d737e618-2ad3-4e1f-837c-35223363c8d9",
+          "date": "2025-08-30",
+          "session_buoi": "CHIỀU",
+          "start_time": "13:30",
+          "end_time": "17:00",
+          "title": "BGĐ, P/B đi công tác",
+          "category": "",
+          "chair": "CEO",
+          "attendees": "CEO, COO, QLĐHBK, TL.YP, TL.YT, NV.QA",
+          "location": "HCM"
+        }
+      ]
+    },
+    {
+      "id": "2025-W32",
+      "week_start": "2025-08-04",
+      "week_end": "2025-08-09",
+      "events": [
+        {
+          "id": "466f5fa2-8b07-4ed7-80ef-f35481dbe259",
+          "date": "2025-08-07",
           "session_buoi": "SÁNG",
           "start_time": "09:30",
           "end_time": "10:30",
@@ -18,8 +349,8 @@
           "location": "Phòng Tổng Giám Đốc"
         },
         {
-          "id": "cef38493-4478-47d4-85b9-347ad3a934c6",
-          "date": "2025-08-28",
+          "id": "d84b5328-5e29-4a13-874b-88f47fc8f615",
+          "date": "2025-08-07",
           "session_buoi": "SÁNG",
           "start_time": "09:30",
           "end_time": "10:30",
@@ -30,8 +361,8 @@
           "location": "Phòng họp 1"
         },
         {
-          "id": "9902dc96-c33e-47a9-bc5b-890329617e33",
-          "date": "2025-08-28",
+          "id": "b414ff45-61f9-4463-946e-52a12e2d7415",
+          "date": "2025-08-07",
           "session_buoi": "CHIỀU",
           "start_time": "15:30",
           "end_time": "16:05",
@@ -42,8 +373,8 @@
           "location": "Phòng họp 2"
         },
         {
-          "id": "468f69f2-d6b4-4bf7-ae72-065e4c3f0b1e",
-          "date": "2025-08-28",
+          "id": "c4be2fc2-f4fc-40fb-8daf-9e661866b75d",
+          "date": "2025-08-07",
           "session_buoi": "SÁNG",
           "start_time": "08:30",
           "end_time": "09:30",
@@ -54,8 +385,8 @@
           "location": "Phòng họp 3"
         },
         {
-          "id": "3e90e9a7-26c0-4452-8377-777a1bd2946e",
-          "date": "2025-08-28",
+          "id": "56c5ed99-8253-4372-ad21-40cb1e377403",
+          "date": "2025-08-07",
           "session_buoi": "SÁNG",
           "start_time": "08:30",
           "end_time": "09:30",
@@ -64,14 +395,129 @@
           "chair": "COO",
           "attendees": "toàn bộ thành viên ",
           "location": "Phòng họp 3"
+        },
+        {
+          "id": "bf277c18-121e-45c3-b5ee-7014263328cf",
+          "date": "2025-08-09",
+          "session_buoi": "SÁNG",
+          "start_time": "09:00",
+          "end_time": "11:00",
+          "title": "Giao ban",
+          "category": "Họp định kỳ",
+          "chair": "PPNSĐT",
+          "attendees": "CEO, TB.AI, TB.IT",
+          "location": "Phòng họp 3"
+        },
+        {
+          "id": "44b08650-ab53-4818-91e9-0a62f7e151de",
+          "date": "2025-08-09",
+          "session_buoi": "SÁNG",
+          "start_time": "09:00",
+          "end_time": "11:00",
+          "title": "Giao ban",
+          "category": "Họp định kỳ",
+          "chair": "COO",
+          "attendees": "CEO, TB.AI, TB.IT",
+          "location": "Phòng họp 3"
         }
       ]
     },
     {
-      "id": "2025-W32",
-      "week_start": "2025-08-04",
-      "week_end": "2025-08-09",
+      "id": "2025-W33",
+      "week_start": "2025-08-11",
+      "week_end": "2025-08-16",
       "events": []
+    },
+    {
+      "id": "2025-W36",
+      "week_start": "2025-09-01",
+      "week_end": "2025-09-06",
+      "events": [
+        {
+          "id": "812d95f0-5ea1-48a9-b7c6-6c4feb86df2d",
+          "date": "2025-09-04",
+          "session_buoi": "SÁNG",
+          "start_time": "09:30",
+          "end_time": "10:30",
+          "title": "Họp giao ban",
+          "category": "Họp nội bộ",
+          "chair": "TGĐ",
+          "attendees": "toàn bộ thành viên ",
+          "location": "Phòng Tổng Giám Đốc"
+        },
+        {
+          "id": "692288e5-e446-4ddb-9411-c44c700d7d23",
+          "date": "2025-09-04",
+          "session_buoi": "SÁNG",
+          "start_time": "09:30",
+          "end_time": "10:30",
+          "title": "Họp AI",
+          "category": "Họp định kỳ",
+          "chair": "CEO",
+          "attendees": "CEO, TB.AI, TB.IT",
+          "location": "Phòng họp 1"
+        },
+        {
+          "id": "cdc3e6e5-ba65-47ef-ad9a-26e40632c317",
+          "date": "2025-09-04",
+          "session_buoi": "CHIỀU",
+          "start_time": "15:30",
+          "end_time": "16:05",
+          "title": "Giao ban",
+          "category": "Họp định kỳ",
+          "chair": "GS.XD",
+          "attendees": "CEO, TB.AI, TB.IT",
+          "location": "Phòng họp 2"
+        },
+        {
+          "id": "6d77025e-c055-45ae-8c6e-67441a107598",
+          "date": "2025-09-04",
+          "session_buoi": "SÁNG",
+          "start_time": "08:30",
+          "end_time": "09:30",
+          "title": "Giao ban",
+          "category": "Họp định kỳ",
+          "chair": "PP.KTTC",
+          "attendees": "CEO, TB.AI, TB.IT",
+          "location": "Phòng họp 3"
+        },
+        {
+          "id": "46e75a5b-23f2-434c-a68b-591fff1c4eb5",
+          "date": "2025-09-04",
+          "session_buoi": "SÁNG",
+          "start_time": "08:30",
+          "end_time": "09:30",
+          "title": "Phỏng vấn",
+          "category": "Họp định kỳ",
+          "chair": "COO",
+          "attendees": "toàn bộ thành viên ",
+          "location": "Phòng họp 3"
+        },
+        {
+          "id": "297f2be3-54b3-4062-80a1-4379456c6be1",
+          "date": "2025-09-06",
+          "session_buoi": "SÁNG",
+          "start_time": "09:00",
+          "end_time": "11:00",
+          "title": "Giao ban",
+          "category": "Họp định kỳ",
+          "chair": "PPNSĐT",
+          "attendees": "CEO, TB.AI, TB.IT",
+          "location": "Phòng họp 3"
+        },
+        {
+          "id": "05a44614-4836-4755-b7a4-c05469b42f48",
+          "date": "2025-09-06",
+          "session_buoi": "SÁNG",
+          "start_time": "09:00",
+          "end_time": "11:00",
+          "title": "Giao ban",
+          "category": "Họp định kỳ",
+          "chair": "COO",
+          "attendees": "CEO, TB.AI, TB.IT",
+          "location": "Phòng họp 3"
+        }
+      ]
     }
   ]
 }
