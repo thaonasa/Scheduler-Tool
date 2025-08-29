@@ -858,7 +858,10 @@ TEMPLATE_INDEX = """
     .header{background:var(--surface);border-bottom:1px solid var(--border);
       display:flex;align-items:center;gap:16px;padding:10px 18px;position:sticky;top:0;z-index:30}
     .brand{display:flex;align-items:center;gap:10px;font-weight:800}
-    .brand .logo{width:28px;height:28px;border-radius:6px;background:var(--primary);display:grid;place-items:center;color:#fff}
+    .brand .logo-wrap{width:28px;height:28px;border-radius:6px;overflow:hidden;display:grid;place-items:center;background:#fff}
+    .brand .logo{width:28px;height:28px;object-fit:contain;display:block}
+    .logo-fallback{width:28px;height:28px;border-radius:6px;background:var(--primary);display:none;place-items:center;color:#fff}
+
     .nav{margin-left:auto;display:flex;gap:12px;align-items:center}
     .nav a,.nav button{border:1px solid var(--border);background:var(--surface);padding:8px 10px;border-radius:999px;cursor:pointer}
     .nav a.primary{background:var(--primary);border-color:transparent;color:#fff}
@@ -928,7 +931,11 @@ TEMPLATE_INDEX = """
   <!-- ===== HEADER ===== -->
   <header class="header">
     <a class="brand" href="/">
-      <span class="logo">🏢</span>
+      <span class="logo-wrap">
+        <img class="logo" src="/static/logo.png" alt="Logo"
+             onerror="this.style.display='none'; this.parentElement.nextElementSibling.style.display='grid';">
+      </span>
+      <span class="logo-fallback">🏢</span>
       <span>{{ company }}</span>
     </a>
     <div class="nav">
@@ -950,6 +957,7 @@ TEMPLATE_INDEX = """
     <aside class="card">
       <h2>Tuần &amp; Tính năng</h2>
       <div class="content">
+        <!-- Mở tuần -->
         <form method="post" action="/switch-session" class="row" style="margin-bottom:12px">
           <div>
             <label class="muted">Chọn bất kỳ ngày trong tuần</label>
@@ -964,6 +972,7 @@ TEMPLATE_INDEX = """
           Tuần hiện tại: <b>{{ week_start.strftime('%d/%m/%Y') }}</b> → <b>{{ week_end.strftime('%d/%m/%Y') }}</b>
         </div>
 
+        <!-- Tìm kiếm -->
         <form method="get" action="/" class="row" style="margin-top:6px">
           <input type="hidden" name="date" value="{{ week_start.isoformat() }}">
           <input type="text" name="q" placeholder="Tìm kiếm..." value="{{ q }}">
@@ -972,11 +981,32 @@ TEMPLATE_INDEX = """
 
         <hr style="margin:14px 0">
 
+        <!-- Xoá toàn tuần -->
         <div class="row">
           <form method="post" action="/event/{{ session.id }}/clear" onsubmit="return confirm('Xoá toàn bộ sự kiện của tuần này?')">
             <button class="danger" type="submit">🗑️ Xoá toàn tuần</button>
           </form>
         </div>
+
+        <!-- Import từ Excel -->
+        <hr style="margin:14px 0">
+        <form method="post" action="/import" enctype="multipart/form-data" class="row">
+          <input type="date" name="target_date" value="{{ today.isoformat() }}">
+          <input type="file" name="file" accept=".xlsx">
+          <button class="primary" type="submit">📥 Import từ Excel</button>
+        </form>
+
+        <!-- Sao chép tuần -->
+        <hr style="margin:14px 0">
+        <form method="post" action="/copy-week" class="row">
+          <select name="source_session_id">
+            {% for s in sessions %}
+              <option value="{{ s.id }}">{{ s.id }} ({{ s.week_start }} → {{ s.week_end }})</option>
+            {% endfor %}
+          </select>
+          <input type="date" name="target_date" value="{{ today.isoformat() }}">
+          <button class="primary" type="submit">📑 Sao chép tuần</button>
+        </form>
 
         {% if import_error %}
         <div style="margin-top:12px;color:#ef4444;padding:8px;border:1px solid #fee2e2;border-radius:8px">
@@ -984,6 +1014,7 @@ TEMPLATE_INDEX = """
         </div>
         {% endif %}
 
+        <!-- Các tuần gần đây -->
         <hr style="margin:14px 0">
         <div>
           <div class="muted" style="margin-bottom:6px">Các tuần gần đây</div>
@@ -1282,6 +1313,7 @@ TEMPLATE_INDEX = """
 </body>
 </html>
 """
+
 
 # ========== MAIN ==========
 if __name__ == "__main__":
