@@ -109,8 +109,8 @@
           "end_time": "17:00",
           "title": "Họp AI & PM",
           "category": "",
-          "chair": "",
-          "attendees": "CEO, COO, TL.YT, PT.IT PM_NC",
+          "chair": "COO",
+          "attendees": "CEO, COO",
           "location": "phòng họp 3"
         },
         {
@@ -229,8 +229,8 @@
           "end_time": "12:00",
           "title": "ÁP DỤNG AI_CHAT GPT VÀO CÔNG VIỆC",
           "category": "",
-          "chair": "COO",
-          "attendees": "COO, PGĐ.PC, TL_YP_YT_TT,  TCN, BQĐ_H.Dương, Q.Như, TB.HSE, GSXD, PPKV, TP/PP KTTC, TP/PP NSĐT, PPKD, TPMKT, QL.CM, TPKT, GSIT, ITPM_NC_NN, Team AI_Văn An, TPQC, GS.XSXBM, QAHT, CV/NV ISO, TP R&D, PKD_H.Kim, NVĐT_V.Lời_T.Duyên, TBAN, NVPC_H.Sơn, CNHCM_Kim Hồng, Huy Giáp, PTKD_CN",
+          "chair": "TP Kế Toán NB",
+          "attendees": "COO, PP. KD, GS.IT, TBHSE",
           "location": "phòng họp 1&2"
         },
         {
@@ -301,9 +301,9 @@
           "end_time": "09:00",
           "title": "Họp định kỳ PNSĐT",
           "category": "",
-          "chair": "TPNSĐT",
-          "attendees": "",
-          "location": ""
+          "chair": "TP.NS_ĐT",
+          "attendees": "GS.XD DOTICOM, PP.NS_ĐT, TP.NS_ĐT, PP. KD, Trưởng Ban An Ninh",
+          "location": "Phòng họp 3"
         },
         {
           "id": "b2f32142-15af-4c85-a948-4419c12677f4",
@@ -661,6 +661,12 @@
           "location": "HCM"
         }
       ]
+    },
+    {
+      "id": "2025-W37",
+      "week_start": "2025-09-08",
+      "week_end": "2025-09-13",
+      "events": []
     }
   ]
 }

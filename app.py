@@ -609,8 +609,13 @@ def home():
     if q:
         events = [e for e in events if q in json.dumps(e, ensure_ascii=False).lower()]
 
+    # Cảnh báo xung đột
     compute_conflicts(events)
     compute_attendees_location_conflicts(events)
+
+    # >>> NEW: dữ liệu cho tab "Lịch"
+    dates, schedule = build_schedule(sess)
+    weekdays = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
 
     return render_template_string(
         TEMPLATE_INDEX,
@@ -625,8 +630,13 @@ def home():
         week_end=dt.date.fromisoformat(sess["week_end"]),
         today=today,
         q=q,
-        import_error=None  # Thêm biến để truyền lỗi nếu có
+        import_error=None,
+        # >>> NEW:
+        dates=dates,
+        schedule=schedule,
+        weekdays=weekdays
     )
+
 
 @app.route("/preview/<session_id>")
 def preview(session_id):
@@ -829,53 +839,114 @@ TEMPLATE_INDEX = """
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <title>Quản lý Lịch Họp {{ company }}</title>
+  <title>Lịch Họp – {{ company }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { --bg:#f5f7fb; --card:#fff; --text:#2c3e50; --muted:#6b7280; --primary:#2563eb; --danger:#ef4444; }
-    * { box-sizing: border-box }
-    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin:0; background:var(--bg); color:var(--text); }
-    header { padding:16px 24px; background:#fff; border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:10 }
-    h1 { font-size:20px; margin:0 }
-    .layout { display:grid; grid-template-columns: 300px 1fr; gap:16px; padding:16px; }
-    .card { background:var(--card); border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,.03) }
-    .card h2 { font-size:16px; padding:14px 16px; margin:0; border-bottom:1px solid #e5e7eb; background:#fafafa }
-    .card .content { padding:16px }
-    .muted { color:var(--muted); }
-    .row { display:flex; gap:8px; }
-    .row > * { flex:1 }
-    input, select, button { padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; font:inherit; }
-    button.primary { background:var(--primary); color:#fff; border-color:transparent; cursor:pointer }
-    button.danger { background:var(--danger); color:#fff; border-color:transparent; cursor:pointer }
-    table { width:100%; border-collapse: collapse; }
-    th, td { text-align:left; padding:8px; border-bottom:1px solid #eee; vertical-align: top; }
-    .legend { display:flex; flex-wrap:wrap; gap:8px; }
-    .tag { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid #e5e7eb; border-radius:999px; background:#fff; }
-    .dot { width:12px; height:12px; border-radius:999px; border:1px solid #e5e7eb; }
-    .conf { color:#b45309; font-weight:600; }
-    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
-    .grid3 { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; }
-    .nowrap { white-space: nowrap; }
-    .toolbar { display:flex; gap:8px; flex-wrap: wrap; }
-    .checkbox-group {
-      margin-top: 8px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
+    :root{
+      --bg:#f5f7fb; --surface:#ffffff; --text:#1f2937; --muted:#6b7280;
+      --border:#e5e7eb; --primary:#2563eb; --danger:#ef4444; --warn:#b45309;
     }
-    .checkbox-group label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font:14px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    a{color:inherit;text-decoration:none}
+    button,input,select{font:inherit}
+
+    /* =========== LAYOUT =========== */
+    .app{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+    .header{background:var(--surface);border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:16px;padding:10px 18px;position:sticky;top:0;z-index:30}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .brand .logo{width:28px;height:28px;border-radius:6px;background:var(--primary);display:grid;place-items:center;color:#fff}
+    .nav{margin-left:auto;display:flex;gap:12px;align-items:center}
+    .nav a,.nav button{border:1px solid var(--border);background:var(--surface);padding:8px 10px;border-radius:999px;cursor:pointer}
+    .nav a.primary{background:var(--primary);border-color:transparent;color:#fff}
+
+    .main{display:grid;grid-template-columns:290px 1fr;gap:16px;padding:16px}
+    @media (max-width: 980px){ .main{grid-template-columns:1fr} }
+
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .card h2{margin:0;padding:14px 16px;border-bottom:1px solid var(--border);font-size:16px;background:#fafafa}
+    .card .content{padding:14px 16px}
+
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row>*{flex:1}
+    input,select,button{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff}
+    button.primary{background:var(--primary);border-color:transparent;color:#fff}
+    button.danger{background:var(--danger);border-color:transparent;color:#fff}
+    .muted{color:var(--muted)} .nowrap{white-space:nowrap}
+
+    .tag{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--border);border-radius:999px;background:#fff}
+    .dot{width:12px;height:12px;border-radius:999px;border:1px solid var(--border)}
+
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    @media (max-width: 980px){ .grid2,.grid3{grid-template-columns:1fr} }
+
+    /* tabs */
+    .tabs{display:flex;gap:8px;padding:0 16px 10px}
+    .tab{padding:8px 12px;border:1px solid var(--border);background:#fff;border-radius:999px;cursor:pointer}
+    .tab.active{background:var(--primary);color:#fff;border-color:transparent}
+    .view{display:none}.view.active{display:block}
+
+    /* calendar */
+    .cal{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
+    .cal-head{display:grid;grid-template-columns:120px repeat(6,1fr);background:#f9fafb;border-bottom:1px solid var(--border)}
+    .cal-head>div{padding:10px 12px;text-align:center;font-weight:600}
+    .cal-row{display:grid;grid-template-columns:120px repeat(6,1fr);border-bottom:1px solid #f3f4f6}
+    .cal-buoi{background:#f9fafb;padding:10px 12px;text-align:center;font-weight:700;border-right:1px solid var(--border)}
+    .cal-cell{padding:10px;min-height:190px;border-right:1px solid #f3f4f6}
+    @media (max-width:1100px){ .cal-head,.cal-row{grid-template-columns:90px repeat(6,1fr)} }
+
+    /* event card */
+    .ev{position:relative;padding:8px 8px 44px;border-radius:10px;background:#f3f4f6;margin-bottom:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}
+    .ev .tt{font-weight:700}
+    .warn{color:var(--warn);font-weight:700}
+    .ev .actions{position:absolute;right:8px;bottom:8px;display:flex;gap:6px}
+    .ev .actions button{padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer}
+    .ev .actions .danger{background:var(--danger);color:#fff;border-color:transparent}
+
+    /* attendees checkboxes */
+    .checkbox-wrap{margin-top:8px}
+    .checkbox-group{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+    .checkbox-group label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+
+    /* tables */
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:8px;border-bottom:1px solid #eee;vertical-align:top;text-align:left}
+
+    /* footer */
+    .footer{background:#fff;border-top:1px solid var(--border);padding:16px 18px;display:grid;gap:10px;justify-items:center}
+    .footer .legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+    .footer .copy{color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
-  <header>
-    <h1>Lịch họp – {{ company }}</h1>
+<div class="app">
+
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <a class="brand" href="/">
+      <span class="logo">🏢</span>
+      <span>{{ company }}</span>
+    </a>
+    <div class="nav">
+      <a href="/" class="primary">🏠 Trang chủ</a>
+      <form method="post" action="/export/{{ session.id }}/excel" style="display:inline">
+        <button type="submit">📤 Export Excel</button>
+      </form>
+      <form method="post" action="/export/{{ session.id }}/ics" style="display:inline">
+        <button type="submit">📆 Export ICS</button>
+      </form>
+      <a href="/backup/json">🗄️ Backup JSON</a>
+    </div>
   </header>
 
-  <div class="layout">
-    <!-- Sidebar -->
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <!-- ===== SIDEBAR ===== -->
     <aside class="card">
       <h2>Tuần &amp; Tính năng</h2>
       <div class="content">
@@ -889,78 +960,43 @@ TEMPLATE_INDEX = """
           </div>
         </form>
 
-        <div style="margin:8px 0 12px" class="muted">
+        <div class="muted" style="margin:8px 0 12px">
           Tuần hiện tại: <b>{{ week_start.strftime('%d/%m/%Y') }}</b> → <b>{{ week_end.strftime('%d/%m/%Y') }}</b>
         </div>
 
-        <div style="margin-top:6px">
-          <form method="get" action="/" class="row">
-            <input type="hidden" name="date" value="{{ week_start.isoformat() }}">
-            <input type="text" name="q" placeholder="Tìm kiếm..." value="{{ q }}">
-            <button type="submit">Lọc</button>
-          </form>
-        </div>
+        <form method="get" action="/" class="row" style="margin-top:6px">
+          <input type="hidden" name="date" value="{{ week_start.isoformat() }}">
+          <input type="text" name="q" placeholder="Tìm kiếm..." value="{{ q }}">
+          <button type="submit">Lọc</button>
+        </form>
 
         <hr style="margin:14px 0">
 
-        <div class="legend">
-          {% for chair, color in chair_colors.items() %}
-            <span class="tag"><span class="dot" style="background: {{ color }}"></span>{{ chair }}</span>
-          {% endfor %}
-        </div>
-
-        <hr style="margin:14px 0">
-
-        <div class="toolbar">
-          <a href="/preview/{{ session.id }}" target="_blank"><button type="button">Xem trước (mẫu Excel)</button></a>
-          <form method="post" action="/export/{{ session.id }}/excel">
-            <button class="primary" type="submit">Export Excel</button>
-          </form>
-          <form method="post" action="/export/{{ session.id }}/ics">
-            <button type="submit">Export ICS</button>
-          </form>
-          <a href="/backup/json"><button type="button">Backup JSON</button></a>
+        <div class="row">
           <form method="post" action="/event/{{ session.id }}/clear" onsubmit="return confirm('Xoá toàn bộ sự kiện của tuần này?')">
-            <button class="danger" type="submit">Xoá toàn tuần</button>
-          </form>
-          <form method="post" action="/import" enctype="multipart/form-data">
-            <input type="date" name="target_date" value="{{ today.isoformat() }}" style="margin-bottom: 8px;">
-            <input type="file" name="file" accept=".xlsx">
-            <button class="primary" type="submit">Import từ Excel</button>
-          </form>
-          <form method="post" action="/copy-week">
-            <select name="source_session_id" style="margin-bottom: 8px;">
-              {% for s in sessions %}
-                <option value="{{ s.id }}">{{ s.id }} ({{ s.week_start }} → {{ s.week_end }})</option>
-              {% endfor %}
-            </select>
-            <input type="date" name="target_date" value="{{ today.isoformat() }}" style="margin-bottom: 8px;">
-            <button class="primary" type="submit">Sao chép tuần</button>
+            <button class="danger" type="submit">🗑️ Xoá toàn tuần</button>
           </form>
         </div>
 
         {% if import_error %}
-          <div style="margin-top:12px; color:#ef4444; padding:8px; border:1px solid #fee2e2; border-radius:8px;">
-            {{ import_error }}
-          </div>
+        <div style="margin-top:12px;color:#ef4444;padding:8px;border:1px solid #fee2e2;border-radius:8px">
+          {{ import_error }}
+        </div>
         {% endif %}
 
         <hr style="margin:14px 0">
-
         <div>
           <div class="muted" style="margin-bottom:6px">Các tuần gần đây</div>
-          <div style="max-height:260px; overflow:auto">
+          <div style="max-height:260px;overflow:auto">
             <table>
               <thead><tr><th>Tuần</th><th class="nowrap">Mở</th></tr></thead>
               <tbody>
-              {% for s in sessions %}
+                {% for s in sessions %}
                 <tr>
                   <td><b>{{ s.id }}</b><br><span class="muted">{{ s.week_start }} → {{ s.week_end }}</span></td>
-                  <td class="nowrap">
-                    <a href="/?date={{ s.week_start }}"><button type="button">Xem</button></a>
-                  </td>
+                  <td class="nowrap"><a href="/?date={{ s.week_start }}"><button type="button">Xem</button></a></td>
                 </tr>
-              {% endfor %}
+                {% endfor %}
               </tbody>
             </table>
           </div>
@@ -968,12 +1004,13 @@ TEMPLATE_INDEX = """
       </div>
     </aside>
 
-    <!-- Main: Form & List -->
-    <main class="card">
+    <!-- ===== CONTENT ===== -->
+    <section class="card">
       <h2>Thêm/Chỉnh sửa sự kiện</h2>
       <div class="content">
         <form id="event-form" method="post" action="/event">
           <input type="hidden" name="id" id="fld-id">
+
           <div class="grid3">
             <div>
               <label>Ngày</label>
@@ -991,12 +1028,10 @@ TEMPLATE_INDEX = """
               <label>Loại</label>
               <input type="hidden" name="category" id="fld-category">
               <select id="fld-category-select">
-                {% for c in categories %}
-                  <option value="{{ c }}">{{ c }}</option>
-                {% endfor %}
+                {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
                 <option value="__OTHER__">Khác…</option>
               </select>
-              <input type="text" id="fld-category-other" placeholder="Nhập loại khác" style="display:none; margin-top:6px">
+              <input type="text" id="fld-category-other" placeholder="Nhập loại khác" style="display:none;margin-top:6px">
             </div>
           </div>
 
@@ -1012,9 +1047,7 @@ TEMPLATE_INDEX = """
             <div>
               <label>Chủ trì</label>
               <select name="chair" id="fld-chair" required>
-                {% for chair, color in chair_colors.items() %}
-                  <option value="{{ chair }}">{{ chair }}</option>
-                {% endfor %}
+                {% for chair,color in chair_colors.items() %}<option value="{{ chair }}">{{ chair }}</option>{% endfor %}
               </select>
             </div>
           </div>
@@ -1028,237 +1061,224 @@ TEMPLATE_INDEX = """
               <label>Địa điểm</label>
               <input type="hidden" name="location" id="fld-location">
               <select id="fld-location-select">
-                {% for r in rooms %}
-                  <option value="{{ r }}">{{ r }}</option>
-                {% endfor %}
+                {% for r in rooms %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
                 <option value="__OTHER__">Khác…</option>
               </select>
-              <input type="text" id="fld-location-other" placeholder="Nhập địa điểm" style="display:none; margin-top:6px">
+              <input type="text" id="fld-location-other" placeholder="Nhập địa điểm" style="display:none;margin-top:6px">
             </div>
           </div>
 
-          <div class="checkbox-group">
+          <div class="checkbox-wrap">
             <label>Thành phần tham dự</label>
-            {% for chair in chair_colors.keys() %}
-              <label>
-                <input type="checkbox" name="attendees" value="{{ chair }}">
-                {{ chair }}
-              </label>
-            {% endfor %}
+            <div class="checkbox-group">
+              {% for chair in chair_colors.keys() %}
+              <label><input type="checkbox" name="attendees" value="{{ chair }}"> {{ chair }}</label>
+              {% endfor %}
+            </div>
           </div>
 
           <div class="row" style="margin-top:12px">
-            <button class="primary" type="submit">Lưu sự kiện</button>
-            <button type="reset" onclick="document.getElementById('fld-id').value=''">Xoá nhập</button>
+            <button class="primary" type="submit">💾 Lưu sự kiện</button>
+            <button type="reset" onclick="document.getElementById('fld-id').value=''">🧹 Xoá nhập</button>
           </div>
         </form>
       </div>
 
-      <h2 style="border-top:1px solid #e5e7eb">Sự kiện trong tuần</h2>
-      <div class="content">
-        {% if events %}
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" data-tab="view-calendar">📅 Lịch</button>
+        <button class="tab" data-tab="view-table">📄 Danh sách</button>
+      </div>
+
+      <!-- ===== VIEW: CALENDAR ===== -->
+      <div id="view-calendar" class="view active">
+        <div class="content">
+          <div class="row" style="align-items:center;margin-bottom:10px">
+            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="only-conflicts"> Chỉ hiển thị sự kiện có cảnh báo</label>
+          </div>
+
+          <div class="cal">
+            <div class="cal-head">
+              <div>Buổi</div>
+              {% for d in dates %}
+                <div>{{ weekdays[loop.index0] }}<br><span class="muted">({{ d.strftime('%d.%m.%Y') }})</span></div>
+              {% endfor %}
+            </div>
+
+            {% for buoi in ['SÁNG','CHIỀU'] %}
+            <div class="cal-row">
+              <div class="cal-buoi">{{ buoi }}</div>
+              {% for d in dates %}
+                {% set key = d.isoformat() %}
+                <div class="cal-cell">
+                  {% for ev in schedule.get(key, {}).get(buoi, []) %}
+                    {% set bg = chair_colors.get(ev.chair, '#f3f4f6') %}
+                    <div class="ev"
+                         style="background:{{ bg }}"
+                         data-id="{{ ev.id }}"
+                         data-date="{{ ev.date }}"
+                         data-buoi="{{ ev.session_buoi }}"
+                         data-start="{{ ev.start_time }}"
+                         data-end="{{ ev.end_time }}"
+                         data-title="{{ ev.title|e }}"
+                         data-chair="{{ ev.chair }}"
+                         data-attendees="{{ ev.attendees|e }}"
+                         data-location="{{ ev.location|e }}"
+                         data-category="{{ ev.category|e }}"
+                         data-has-conflict="{{ '1' if (ev.conflict or ev.attendees_conflict or ev.location_conflict) else '0' }}">
+                      <div class="tt">• {{ ev.start_time }}–{{ ev.end_time }}: {{ ev.title }}</div>
+                      <div>Chủ trì: <b>{{ ev.chair }}</b></div>
+                      {% if ev.attendees %}<div>- Thành phần tham dự: {{ ev.attendees }} {% if ev.attendees_conflict %}<span class="warn">⚠ Trùng thành phần</span>{% endif %}</div>{% endif %}
+                      {% if ev.location %}<div>- Địa điểm: {{ ev.location }} {% if ev.location_conflict %}<span class="warn">⚠ Trùng địa điểm</span>{% endif %}</div>{% endif %}
+                      {% if ev.category %}<div>- Loại: {{ ev.category }}</div>{% endif %}
+                      {% if ev.conflict %}<div class="warn">⚠ Trùng giờ</div>{% endif %}
+
+                      <div class="actions">
+                        <button type="button" onclick="editEventFromCard(this)">Sửa</button>
+                        <form method="post" action="/event/{{ session.id }}/{{ ev.id }}/delete" onsubmit="return confirm('Xoá sự kiện này?')">
+                          <button class="danger" type="submit">Xoá</button>
+                        </form>
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="muted" style="font-style:italic">—</div>
+                  {% endfor %}
+                </div>
+              {% endfor %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== VIEW: TABLE ===== -->
+      <div id="view-table" class="view">
+        <div class="content">
+          {% if events %}
           <table>
             <thead>
               <tr>
-                <th class="nowrap">Ngày</th>
-                <th>Buổi</th>
-                <th>Giờ</th>
-                <th>Tiêu đề</th>
-                <th>Chủ trì</th>
-                <th>Thành phần tham dự</th>
-                <th>Địa điểm</th>
-                <th>Cảnh báo</th>
-                <th></th>
+                <th class="nowrap">Ngày</th><th>Buổi</th><th>Giờ</th><th>Tiêu đề</th>
+                <th>Chủ trì</th><th>Thành phần tham dự</th><th>Địa điểm</th><th>Cảnh báo</th><th></th>
               </tr>
             </thead>
             <tbody>
-            {% for ev in events %}
+              {% for ev in events %}
               <tr
-                data-id="{{ ev.id }}"
-                data-date="{{ ev.date }}"
-                data-buoi="{{ ev.session_buoi }}"
-                data-start="{{ ev.start_time }}"
-                data-end="{{ ev.end_time }}"
-                data-title="{{ ev.title|e }}"
-                data-chair="{{ ev.chair }}"
-                data-attendees="{{ ev.attendees|e }}"
-                data-location="{{ ev.location|e }}"
-                data-category="{{ ev.category|e }}"
-              >
+                data-id="{{ ev.id }}" data-date="{{ ev.date }}" data-buoi="{{ ev.session_buoi }}"
+                data-start="{{ ev.start_time }}" data-end="{{ ev.end_time }}"
+                data-title="{{ ev.title|e }}" data-chair="{{ ev.chair }}"
+                data-attendees="{{ ev.attendees|e }}" data-location="{{ ev.location|e }}"
+                data-category="{{ ev.category|e }}">
                 <td class="nowrap">{{ ev.date }}</td>
                 <td>{{ ev.session_buoi }}</td>
-                <td class="nowrap">{{ ev.start_time }}–{{ ev.end_time }} {% if ev.conflict %}<span class="conf">⚠ Trùng giờ</span>{% endif %}</td>
-                <td>
-                  <div style="font-weight:600">{{ ev.title }}</div>
-                  {% if ev.category %}<div class="muted">Loại: {{ ev.category }}</div>{% endif %}
-                </td>
+                <td class="nowrap">{{ ev.start_time }}–{{ ev.end_time }} {% if ev.conflict %}<span class="warn">⚠ Trùng giờ</span>{% endif %}</td>
+                <td><div style="font-weight:600">{{ ev.title }}</div>{% if ev.category %}<div class="muted">Loại: {{ ev.category }}</div>{% endif %}</td>
                 <td>{{ ev.chair }}</td>
-                <td>{{ ev.attendees }} {% if ev.attendees_conflict %}<span class="conf">⚠ Trùng thành phần</span>{% endif %}</td>
-                <td>{{ ev.location }} {% if ev.location_conflict %}<span class="conf">⚠ Trùng địa điểm</span>{% endif %}</td>
+                <td>{{ ev.attendees }} {% if ev.attendees_conflict %}<span class="warn">⚠ Trùng thành phần</span>{% endif %}</td>
+                <td>{{ ev.location }} {% if ev.location_conflict %}<span class="warn">⚠ Trùng địa điểm</span>{% endif %}</td>
                 <td>
-                  {% if ev.conflict %}<span class="conf">⚠ Trùng giờ</span><br>{% endif %}
-                  {% if ev.attendees_conflict %}<span class="conf">⚠ Trùng thành phần</span><br>{% endif %}
-                  {% if ev.location_conflict %}<span class="conf">⚠ Trùng địa điểm</span><br>{% endif %}
+                  {% if ev.conflict %}<div class="warn">⚠ Trùng giờ</div>{% endif %}
+                  {% if ev.attendees_conflict %}<div class="warn">⚠ Trùng thành phần</div>{% endif %}
+                  {% if ev.location_conflict %}<div class="warn">⚠ Trùng địa điểm</div>{% endif %}
                 </td>
                 <td class="nowrap">
-                  <div style="display:flex; gap:6px">
-                    <button type="button" onclick="editEvent(this)">Sửa</button>
-                    <form method="post" action="/event/{{ session.id }}/{{ ev.id }}/delete" onsubmit="return confirm('Xoá sự kiện này?')">
-                      <button class="danger" type="submit">Xoá</button>
-                    </form>
-                  </div>
+                  <button type="button" onclick="editEvent(this)">Sửa</button>
+                  <form method="post" action="/event/{{ session.id }}/{{ ev.id }}/delete" style="display:inline" onsubmit="return confirm('Xoá sự kiện này?')">
+                    <button class="danger" type="submit">Xoá</button>
+                  </form>
                 </td>
               </tr>
-            {% endfor %}
+              {% endfor %}
             </tbody>
           </table>
-        {% else %}
+          {% else %}
           <div class="muted">Chưa có sự kiện nào trong tuần này.</div>
-        {% endif %}
+          {% endif %}
+        </div>
       </div>
-    </main>
-  </div>
 
-  <script>
-    // —— Select "Khác…" logic (category & location) ——
-    function setupOther(selectId, otherId, hiddenId) {
-      const sel = document.getElementById(selectId);
-      const other = document.getElementById(otherId);
-      const hidden = document.getElementById(hiddenId);
+    </section>
+  </main>
 
-      function syncHidden() {
-        if (sel.value === '__OTHER__') {
-          other.style.display = '';
-          hidden.value = other.value.trim();
-        } else {
-          other.style.display = 'none';
-          hidden.value = sel.value;
-        }
-      }
-      sel.addEventListener('change', syncHidden);
-      other.addEventListener('input', syncHidden);
-      syncHidden();
-    }
-    setupOther('fld-category-select', 'fld-category-other', 'fld-category');
-    setupOther('fld-location-select', 'fld-location-other', 'fld-location');
-
-    // —— Edit button: đổ dữ liệu vào form ——
-    function setSelectOrOther(selectId, otherId, hiddenId, value) {
-      const sel = document.getElementById(selectId);
-      const other = document.getElementById(otherId);
-      const hidden = document.getElementById(hiddenId);
-      const exists = Array.from(sel.options).some(opt => opt.value === value);
-      if (exists) {
-        sel.value = value;
-        other.style.display = 'none';
-        hidden.value = value;
-      } else {
-        sel.value = '__OTHER__';
-        other.style.display = '';
-        other.value = value || '';
-        hidden.value = other.value;
-      }
-    }
-
-    function editEvent(btn) {
-      const tr = btn.closest('tr');
-      const g = (k) => tr.dataset[k] || '';
-
-      document.getElementById('fld-id').value = g('id');
-      document.getElementById('fld-date').value = g('date');
-      document.getElementById('fld-buoi').value = g('buoi');
-      document.getElementById('fld-start').value = g('start');
-      document.getElementById('fld-end').value = g('end');
-      document.getElementById('fld-title').value = g('title');
-      document.getElementById('fld-chair').value = g('chair');
-
-      // Xử lý attendees từ checkbox
-      const attendees = g('attendees').split(',').map(a => a.trim()).filter(a => a);
-      const checkboxes = document.getElementsByName('attendees');
-      for (let checkbox of checkboxes) {
-        checkbox.checked = attendees.includes(checkbox.value);
-      }
-
-      setSelectOrOther('fld-category-select', 'fld-category-other', 'fld-category', g('category'));
-      setSelectOrOther('fld-location-select', 'fld-location-other', 'fld-location', g('location'));
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  </script>
-</body>
-</html>
-"""
-
-# —— PREVIEW TEMPLATE: mỗi sự kiện là 1 khối màu theo Chủ trì ——
-TEMPLATE_PREVIEW = """
-<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8">
-  <title>Preview lịch tuần – {{ company }}</title>
-  <style>
-    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#f6f7fb; margin:0; padding:24px; color:#111827; }
-    h1 { margin:0 0 16px 0; font-size:20px; }
-    .table { border:1px solid #e5e7eb; background:#fff; border-radius:10px; overflow:hidden }
-    .head { display:grid; grid-template-columns: 120px repeat(6, 1fr); background:#f9fafb; border-bottom:1px solid #e5e7eb; }
-    .head div { padding:10px 12px; font-weight:600; text-align:center; }
-    .row { display:grid; grid-template-columns: 120px repeat(6, 1fr); border-bottom:1px solid #f3f4f6; }
-    .buoi { background:#f9fafb; padding:10px 12px; font-weight:700; text-align:center; border-right:1px solid #e5e7eb }
-    .cell { padding:8px; min-height:180px; border-right:1px solid #f3f4f6; }
-    .ev { padding:8px; margin-bottom:8px; border-radius:8px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); background:#f3f4f6 }
-    .ev .tt { font-weight:700 }
-    .muted { color:#6b7280; }
-    .warn { color:#b45309; font-weight:700 }
-    .legend { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap }
-    .tag { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid #e5e7eb; border-radius:999px; background:#fff; }
-    .dot { width:12px; height:12px; border-radius:999px; border:1px solid #e5e7eb; display:inline-block }
-    @media print {
-      body { padding:0; }
-      .legend { display:none }
-    }
-  </style>
-</head>
-<body>
-  <h1>Preview lịch tuần – {{ company }} ({{ session.week_start }} → {{ session.week_end }})</h1>
-
-  <div class="table">
-    <div class="head">
-      <div>Buổi</div>
-      {% for d in dates %}
-        <div>{{ weekdays[loop.index0] }}<br><span class="muted">({{ d.strftime('%d.%m.%Y') }})</span></div>
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="legend">
+      {% for chair, color in chair_colors.items() %}
+        <span class="tag"><span class="dot" style="background: {{ color }}"></span>{{ chair }}</span>
       {% endfor %}
     </div>
+    <div class="copy">© {{ week_end.strftime('%Y') }} {{ company }} — Hệ thống lịch họp nội bộ</div>
+  </footer>
+</div>
 
-    {% for buoi in ['SÁNG', 'CHIỀU'] %}
-      <div class="row">
-        <div class="buoi">{{ buoi }}</div>
-        {% for d in dates %}
-          {% set key = d.isoformat() %}  <!-- Sử dụng định dạng ISO để khớp với schedule -->
-          <div class="cell">
-            {% for ev in schedule.get(key, {}).get(buoi, []) %}
-              {% set bg = chair_colors.get(ev.chair, '#f3f4f6') %}
-              <div class="ev" style="background: {{ bg }}">
-                <div class="tt">• {{ ev.start_time }}–{{ ev.end_time }}: {{ ev.title }}</div>
-                <div>Chủ trì: <b>{{ ev.chair }}</b></div>
-                {% if ev.attendees %}<div>- Thành phần tham dự: {{ ev.attendees }} {% if ev.attendees_conflict %}<span class="warn">⚠ Trùng thành phần</span>{% endif %}</div>{% endif %}
-                {% if ev.location %}<div>- Địa điểm: {{ ev.location }} {% if ev.location_conflict %}<span class="warn">⚠ Trùng địa điểm</span>{% endif %}</div>{% endif %}
-                {% if ev.category %}<div>- Loại: {{ ev.category }}</div>{% endif %}
-                {% if ev.conflict %}<div class="warn">⚠ Trùng giờ</div>{% endif %}
-              </div>
-            {% else %}
-              <div class="muted" style="font-style:italic">—</div>
-            {% endfor %}
-          </div>
-        {% endfor %}
-      </div>
-    {% endfor %}
-  </div>
+<script>
+  // Tabs
+  document.querySelectorAll('.tab').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      const id=b.dataset.tab;
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    });
+  });
 
-  <div class="legend">
-    {% for chair, color in chair_colors.items() %}
-      <span class="tag"><span class="dot" style="background: {{ color }}"></span>{{ chair }}</span>
-    {% endfor %}
-  </div>
+  // Only-conflicts filter
+  const onlyConf=document.getElementById('only-conflicts');
+  if(onlyConf){
+    onlyConf.addEventListener('change',()=>{
+      document.querySelectorAll('#view-calendar .ev').forEach(card=>{
+        const has=card.dataset.hasConflict==='1';
+        card.style.display=onlyConf.checked?(has?'':'none'):'';
+      });
+    });
+  }
+
+  // "Khác…" select helpers
+  function setupOther(selectId, otherId, hiddenId){
+    const sel=document.getElementById(selectId), other=document.getElementById(otherId), hidden=document.getElementById(hiddenId);
+    function sync(){ if(sel.value==='__OTHER__'){ other.style.display=''; hidden.value=other.value.trim(); } else { other.style.display='none'; hidden.value=sel.value; } }
+    sel.addEventListener('change',sync); other.addEventListener('input',sync); sync();
+  }
+  setupOther('fld-category-select','fld-category-other','fld-category');
+  setupOther('fld-location-select','fld-location-other','fld-location');
+
+  // Select or "Khác…"
+  function setSelectOrOther(selectId,otherId,hiddenId,value){
+    const sel=document.getElementById(selectId), other=document.getElementById(otherId), hidden=document.getElementById(hiddenId);
+    const exists=Array.from(sel.options).some(o=>o.value===value);
+    if(exists){ sel.value=value; other.style.display='none'; hidden.value=value; }
+    else{ sel.value='__OTHER__'; other.style.display=''; other.value=value||''; hidden.value=other.value; }
+  }
+
+  // Normalize for attendee compare
+  function normLabel(s){ return (s||'').toString().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[\\.\\_\\-\\s]+/g,'').toUpperCase().trim(); }
+
+  // Fill form (shared)
+  function fillForm(ds){
+    const g=k=>(ds[k]??'').toString().trim();
+    document.getElementById('fld-id').value=g('id');
+    document.getElementById('fld-date').value=g('date');
+    document.getElementById('fld-buoi').value=g('buoi');
+    document.getElementById('fld-start').value=g('start');
+    document.getElementById('fld-end').value=g('end');
+    document.getElementById('fld-title').value=g('title');
+    (function setSelect(id,val){
+      const sel=document.getElementById(id); if(!sel) return;
+      const has=Array.from(sel.options).some(o=>o.value===val);
+      sel.value=has?val:(sel.value||'');
+    })('fld-chair',g('chair'));
+    const set=new Set(g('attendees').split(/[,;]+/).map(s=>s.trim()).filter(Boolean).map(normLabel));
+    document.querySelectorAll('input[name="attendees"]').forEach(cb=>cb.checked=set.has(normLabel(cb.value)));
+    setSelectOrOther('fld-category-select','fld-category-other','fld-category',g('category'));
+    setSelectOrOther('fld-location-select','fld-location-other','fld-location',g('location'));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function editEvent(btn){ const tr=btn.closest('tr'); fillForm(tr.dataset); }
+  function editEventFromCard(btn){ const card=btn.closest('.ev'); fillForm(card.dataset); }
+</script>
 </body>
 </html>
 """
