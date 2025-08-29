@@ -22,18 +22,36 @@ CHAIR_COLORS = {
     'TGĐ': '#fcba03',
     'CEO': '#FF9999',
     'COO': '#99CCFF',
-    'GS.XD': '#CCFF99',
-    'TPQC': '#FFFF99',
-    'PPNSĐT': '#FFCC99',
-    'CV.BGĐ': '#CC99FF',
-    'ITPM_N.Nguyên': '#99FFFF',
-    'NVISO': '#FF99FF',
-    'TPKT': '#99FF99',
-    'TBHSE': '#FFCCFF',
-    'PP.KTTC': '#CCFFFF',
+    'CFO': '#FF6666',
+    'QĐ.XSX': '#FFCC00',
+    'QLĐH bánh kem': '#33CC99',
+    'TB. KS - TL BGĐ': '#CC99FF',
+    'Cố vấn BGĐ': '#FF66CC',
+    'TL.BGĐ': '#99CC00',
+    'PP kế toán': '#66CCCC',
+    'TP Kế Toán NB': '#FF9933',
+    'Kế Toán Trưởng': '#339966',
+    'Nhân viên QA hệ thống': '#99CCFF',
+    'GS.XD DOTICOM': '#CCCC99',
+    'PP.NS_ĐT': '#FF99CC',
+    'TP.NS_ĐT': '#66CC99',
+    'PT kinh doanh': '#3399FF',
+    'PP. KD': '#9966FF',
+    'QL Product Marketing': '#FF3399',
+    'TP. Marketing': '#CC33CC',
+    'QL Content Marketing': '#993366',
+    'Trưởng Phòng QC': '#66FF99',
+    'Phó phòng KHVT': '#FFCC00',
+    'IT.PM': '#339999',
     'GS.IT': '#FFCC00',
-    'TL.BGĐ_YP': '#99CC00',
-    'PPKV': '#FF9900'
+    'Trưởng BP AI': '#9933CC',
+    'Trưởng Ban An Ninh': '#996633',
+    'NV ISO': '#CCFF33',
+    'NV Phát triển SP': '#669933',
+    'Ban HSE': '#66FF00',
+    'TBHSE': '#FFCCFF',
+    'Trưởng chi nhánh': '#FF6600',
+    'HC nhân sự': '#666633',
 }
 
 # Danh sách Loại & Phòng họp cho select
@@ -116,14 +134,25 @@ def compute_attendees_location_conflicts(events):
         for i, ev in enumerate(arr):
             ev["attendees_conflict"] = False
             ev["location_conflict"] = False
+            ev["chair_conflict"] = False
             for j, other_ev in enumerate(arr):
                 if i != j:
-                    if ev["attendees"] and other_ev["attendees"] and ev["attendees"] == other_ev["attendees"]:
-                        ev["attendees_conflict"] = True
-                        other_ev["attendees_conflict"] = True
-                    if ev["location"] and other_ev["location"] and ev["location"] == other_ev["location"]:
+                    # Chuẩn hóa danh sách người tham dự để so sánh
+                    ev_attendees = set([a.strip() for a in ev.get("attendees", "").split(",") if a.strip()])
+                    other_attendees = set([a.strip() for a in other_ev.get("attendees", "").split(",") if a.strip()])
+                    same_attendees = ev_attendees.intersection(other_attendees)
+                    same_location = ev.get("location") and other_ev.get("location") and ev["location"] == other_ev["location"]
+                    time_overlap = overlap(ev, other_ev)
+
+                    # Cảnh báo "Trùng giờ" đã được xử lý trong compute_conflicts
+                    # Cảnh báo "Trùng địa điểm" nếu cùng địa điểm và thời gian chồng lấn
+                    if time_overlap and same_location:
                         ev["location_conflict"] = True
                         other_ev["location_conflict"] = True
+                    # Cảnh báo "Trùng thành phần tham dự" nếu có ít nhất một thành phần chung và thời gian chồng lấn
+                    if time_overlap and same_attendees:
+                        ev["attendees_conflict"] = True
+                        other_ev["attendees_conflict"] = True
 
 def get_or_create_session(data, any_date: dt.date):
     sid = session_id_from_date(any_date)
@@ -638,17 +667,17 @@ def add_or_update_event():
     sess = get_or_create_session(data, dt.date.fromisoformat(date_str))
 
     payload = {
-        "id": request.form.get("id", ""),
-        "date": date_str,
-        "buoi": buoi,  # giữ nguyên
-        "start_time": request.form["start_time"],
-        "end_time": request.form["end_time"],
-        "title": request.form["title"],
-        "category": request.form.get("category", ""),
-        "chair": request.form["chair"],
-        "attendees": request.form.get("attendees", ""),
-        "location": request.form.get("location", "")
-    }
+    "id": request.form.get("id", ""),
+    "date": date_str,
+    "buoi": buoi,
+    "start_time": request.form["start_time"],
+    "end_time": request.form["end_time"],
+    "title": request.form["title"],
+    "category": request.form.get("category", ""),
+    "chair": request.form["chair"],
+    "attendees": ", ".join(request.form.getlist('attendees')) if request.form.getlist('attendees') else "",
+    "location": request.form.get("location", "")
+}
     try:
         upsert_event(sess, payload)
         save_data(data)
@@ -827,6 +856,17 @@ TEMPLATE_INDEX = """
     .grid3 { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; }
     .nowrap { white-space: nowrap; }
     .toolbar { display:flex; gap:8px; flex-wrap: wrap; }
+    .checkbox-group {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
   </style>
 </head>
 <body>
@@ -925,7 +965,6 @@ TEMPLATE_INDEX = """
             </table>
           </div>
         </div>
-
       </div>
     </aside>
 
@@ -998,9 +1037,14 @@ TEMPLATE_INDEX = """
             </div>
           </div>
 
-          <div style="margin-top:8px">
+          <div class="checkbox-group">
             <label>Thành phần tham dự</label>
-            <input type="text" name="attendees" id="fld-attendees" placeholder="VD: CEO, COO">
+            {% for chair in chair_colors.keys() %}
+              <label>
+                <input type="checkbox" name="attendees" value="{{ chair }}">
+                {{ chair }}
+              </label>
+            {% endfor %}
           </div>
 
           <div class="row" style="margin-top:12px">
@@ -1054,7 +1098,7 @@ TEMPLATE_INDEX = """
                 <td>
                   {% if ev.conflict %}<span class="conf">⚠ Trùng giờ</span><br>{% endif %}
                   {% if ev.attendees_conflict %}<span class="conf">⚠ Trùng thành phần</span><br>{% endif %}
-                  {% if ev.location_conflict %}<span class="conf">⚠ Trùng địa điểm</span>{% endif %}
+                  {% if ev.location_conflict %}<span class="conf">⚠ Trùng địa điểm</span><br>{% endif %}
                 </td>
                 <td class="nowrap">
                   <div style="display:flex; gap:6px">
@@ -1127,7 +1171,13 @@ TEMPLATE_INDEX = """
       document.getElementById('fld-end').value = g('end');
       document.getElementById('fld-title').value = g('title');
       document.getElementById('fld-chair').value = g('chair');
-      document.getElementById('fld-attendees').value = g('attendees');
+
+      // Xử lý attendees từ checkbox
+      const attendees = g('attendees').split(',').map(a => a.trim()).filter(a => a);
+      const checkboxes = document.getElementsByName('attendees');
+      for (let checkbox of checkboxes) {
+        checkbox.checked = attendees.includes(checkbox.value);
+      }
 
       setSelectOrOther('fld-category-select', 'fld-category-other', 'fld-category', g('category'));
       setSelectOrOther('fld-location-select', 'fld-location-other', 'fld-location', g('location'));
