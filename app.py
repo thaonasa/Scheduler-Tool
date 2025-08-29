@@ -151,13 +151,12 @@ def upsert_event(session, payload):
     ev = {
         "id": _id,
         "date": payload["date"],
-        # map lại cho đồng bộ
-        "session_buoi": payload["buoi"],
+        "session_buoi": payload.get("buoi") or payload.get("session_buoi") or guess_buoi(payload["start_time"]),
         "start_time": payload["start_time"],
         "end_time": payload["end_time"],
         "title": payload["title"],
         "category": payload.get("category", ""),
-        "chair": payload["chair"],
+        "chair": payload.get("chair", ""),
         "attendees": payload.get("attendees", ""),
         "location": payload.get("location", "")
     }
