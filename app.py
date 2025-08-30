@@ -209,20 +209,38 @@ def build_schedule(session):
     dates = []
     schedule = {}
     week_start = dt.date.fromisoformat(session["week_start"])
-    for i in range(WEEK_DAYS):
+
+    for i in range(WEEK_DAYS):  # Thứ 2 → Thứ 7
         date = week_start + dt.timedelta(days=i)
         dates.append(date)
-        schedule[date.isoformat()] = {"SÁNG": [], "CHIỀU": []}  # Sử dụng định dạng ISO
+        schedule[date.isoformat()] = {"SÁNG": [], "CHIỀU": []}
 
-    for event in session["events"]:
-        date = dt.date.fromisoformat(event["date"])
-        if date.isoformat() in schedule:
-            schedule[date.isoformat()][event["session_buoi"]].append(event)
-        else:
-            print(f"Ngày không hợp lệ trong schedule: {event['date']}")
+    for ev in session["events"]:
+        try:
+            date_iso = dt.date.fromisoformat(ev["date"]).isoformat()
+            if date_iso in schedule:
+                schedule[date_iso][ev["session_buoi"]].append(ev)
+        except Exception as e:
+            print(f"Lỗi parse date {ev.get('date')}: {e}")
 
-    print(f"Schedule sau khi build: {schedule}")
+    # --- sort an toàn theo (start, end, title)
+    def to_min(hhmm: str) -> int:
+        try:
+            h, m = map(int, (hhmm or "00:00").split(":"))
+            return h * 60 + m
+        except Exception:
+            return 0
+
+    for day_dict in schedule.values():
+        for buoi in ("SÁNG", "CHIỀU"):
+            day_dict[buoi].sort(
+                key=lambda e: (to_min(e.get("start_time", "")),
+                               to_min(e.get("end_time", "")),
+                               e.get("title", ""))
+            )
+
     return dates, schedule
+
 
 # ========== XUẤT EXCEL DẠNG BẢNG LỊCH HỌP ==========
 def export_session_to_excel(session):
@@ -539,25 +557,6 @@ def parse_cell(cell_content):
         })
 
     return parsed_events
-
-def build_schedule(session):
-    dates = []
-    schedule = {}
-    week_start = dt.date.fromisoformat(session["week_start"])
-    for i in range(6):
-        date = week_start + dt.timedelta(days=i)
-        dates.append(date)
-        schedule[date.isoformat()] = {"SÁNG": [], "CHIỀU": []}  # Sử dụng định dạng ISO cho key
-
-    for event in session["events"]:
-        date = dt.date.fromisoformat(event["date"])
-        if date.isoformat() in schedule:
-            schedule[date.isoformat()][event["session_buoi"]].append(event)
-        else:
-            print(f"Ngày không hợp lệ trong schedule: {event['date']}")
-
-    print(f"Schedule sau khi build: {schedule}")
-    return dates, schedule
 
 
 # ========== SAO CHÉP TUẦN ==========

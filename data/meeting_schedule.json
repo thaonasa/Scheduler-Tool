@@ -983,6 +983,42 @@
           "chair": "",
           "attendees": "CEO, COO, QLĐHBK, TL.YP, TL.YT, NV.QA",
           "location": "HCM"
+        },
+        {
+          "id": "d0e1b22a-3666-44dd-bb60-b7af8cdbe54d",
+          "date": "2025-09-05",
+          "session_buoi": "SÁNG",
+          "start_time": "05:30",
+          "end_time": "07:30",
+          "title": "họp giao ca",
+          "category": "Họp định kỳ",
+          "chair": "COO",
+          "attendees": "COO, CFO, QĐ.XSX",
+          "location": "Phòng họp 1"
+        },
+        {
+          "id": "44d23ef1-00bb-4253-96d6-b4b55b37e639",
+          "date": "2025-09-03",
+          "session_buoi": "SÁNG",
+          "start_time": "05:27",
+          "end_time": "09:27",
+          "title": "họp giao ban",
+          "category": "Họp định kỳ",
+          "chair": "PP.NS_ĐT",
+          "attendees": "COO, CFO, Cố vấn BGĐ, TL.BGĐ, TP Kế Toán NB",
+          "location": "Phòng họp 2"
+        },
+        {
+          "id": "03defd9e-e9b5-4300-9b94-488826e656ce",
+          "date": "2025-09-05",
+          "session_buoi": "SÁNG",
+          "start_time": "05:00",
+          "end_time": "06:52",
+          "title": "họp giao ban IT",
+          "category": "Họp định kỳ",
+          "chair": "Trưởng BP AI",
+          "attendees": "CEO, COO, IT.PM, GS.IT, Trưởng BP AI",
+          "location": "Phòng họp 1"
         }
       ]
     },
